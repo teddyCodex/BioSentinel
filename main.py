@@ -39,6 +39,7 @@ model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accur
 
 # Set the path to your training and testing dataset directories
 train_data_dir = "../biosentinel_training_data/fruit_vegs_tdata/train"
+validation_data_dir = "../biosentinel_training_data/fruit_vegs_tdata/validation"
 test_data_dir = "../biosentinel_training_data/fruit_vegs_tdata/test"
 
 # Set the batch size and target image size
@@ -54,6 +55,16 @@ train_generator = train_data_generator.flow_from_directory(
     target_size=target_size,
     batch_size=batch_size,
     class_mode="categorical",
+)
+
+validation_data_generator = ImageDataGenerator(rescale=1.0 / 255)  # Modify as needed
+
+validation_generator = validation_data_generator.flow_from_directory(
+    validation_data_dir,
+    target_size=target_size,
+    batch_size=batch_size,
+    class_mode="categorical",
+    shuffle=False,
 )
 
 # Create a data generator without data augmentation for the testing dataset
@@ -76,6 +87,8 @@ model.fit(
     train_generator,
     steps_per_epoch=train_generator.samples // batch_size,
     epochs=epochs,
+    validation_data=validation_generator,
+    validation_steps=validation_generator.samples // batch_size,
 )
 
 ################## model testing  #########################
@@ -86,3 +99,6 @@ evaluation = model.evaluate(test_generator, steps=test_generator.samples // batc
 # Print the evaluation metrics
 print("Test Loss:", evaluation[0])
 print("Test Accuracy:", evaluation[1])
+
+# Save the trained model
+model.save("BioSentinel.h5")
